@@ -147,26 +147,29 @@ export class DashboardComponent implements OnInit {
     this.userService.users().subscribe({
       next: (response) => {
         this.users = response;
-        if (this.currentUser?._id && !this.foodNames[this.currentUser._id]) {
-          this.foodNames[this.currentUser._id] = {};
-          this.prices[this.currentUser._id] = {};
-          this.days.forEach((day) => {
-            this.foodNames[this.currentUser._id][day] = '';
-            this.prices[this.currentUser._id][day] = 0;
-          });
-        }
-        // Initialize prices and foodNames for each user/day
-        this.users.forEach((user) => {
-          if (!this.foodNames[user._id]) this.foodNames[user._id] = {};
-          if (!this.prices[user._id]) this.prices[user._id] = {};
 
-          // Only overwrite if not already populated
+        // Initialize foodNames and prices
+        this.users.forEach((user) => {
+          this.foodNames[user._id] = {};
+          this.prices[user._id] = {};
+
           this.days.forEach((day) => {
-            if (!this.foodNames[user._id][day])
-              this.foodNames[user._id][day] = '';
-            if (!this.prices[user._id][day]) this.prices[user._id][day] = 0;
+            this.foodNames[user._id][day] = '';
+            this.prices[user._id][day] = 0;
           });
         });
+
+        // 🧠 Load previous values from localStorage
+        const stored = localStorage.getItem('weeklyOrder');
+        if (stored) {
+          const saved = JSON.parse(stored);
+          if (saved.userId === this.currentUser?._id) {
+            for (const entry of saved.entries) {
+              this.foodNames[saved.userId][entry.day] = entry.foodName;
+              this.prices[saved.userId][entry.day] = entry.price;
+            }
+          }
+        }
       },
       error: (error) => console.error('Error fetching users:', error),
     });
@@ -175,6 +178,7 @@ export class DashboardComponent implements OnInit {
       next: (foods) => (this.foods = foods),
       error: (err) => console.error('Error fetching foods:', err),
     });
+
     this.checkAndClearExpiredOrder();
   }
 
@@ -213,52 +217,18 @@ export class DashboardComponent implements OnInit {
       price: this.prices[userId][day],
     }));
 
-    const newPayload = { userId, entries, weekStartDate, weekLabel };
+    const payload = { userId, entries, weekStartDate, weekLabel };
 
-    const stored = localStorage.getItem('weeklyOrder');
-    const previous = stored ? JSON.parse(stored) : null;
-
-    const allEmpty = entries.every((e) => !e.foodName);
-
-    function deepEqual(a: any, b: any): boolean {
-      return JSON.stringify(sortEntries(a)) === JSON.stringify(sortEntries(b));
-    }
-
-    function sortEntries(entries: any[]) {
-      return entries
-        .map(({ day, foodName, price }) => ({
-          day: day.trim(),
-          foodName: foodName.trim(),
-          price: Number(price),
-        }))
-        .sort((a, b) => a.day.localeCompare(b.day));
-    }
-
-    const isSame =
-      previous &&
-      previous.userId === newPayload.userId &&
-      previous.weekStartDate === newPayload.weekStartDate &&
-      deepEqual(previous.entries, newPayload.entries);
-
-    if (isSame && !allEmpty) {
-      console.log('No changes detected. Skip save.');
-      return;
-    }
-
-    const saveFn = previous
+    const saveFn = localStorage.getItem('weeklyOrder')
       ? this.foodService.updateFoodEntry
       : this.foodService.saveEntries;
 
-    saveFn.call(this.foodService, newPayload).subscribe({
+    saveFn.call(this.foodService, payload).subscribe({
       next: (res: any) => {
-        console.log(previous ? 'Order updated:' : 'Order created:', res);
-        const cleanRes = {
-          ...res,
-          entries: res.entries,
-        };
-        localStorage.setItem('weeklyOrder', JSON.stringify(cleanRes));
+        localStorage.setItem('weeklyOrder', JSON.stringify(res));
+        console.log('Order saved successfully:', res);
       },
-      error: (err) => console.error('Error saving/updating order:', err),
+      error: (err) => console.error('Error saving order:', err),
     });
   }
 
