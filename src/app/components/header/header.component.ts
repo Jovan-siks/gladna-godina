@@ -3,6 +3,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ThemeService } from '../../services/theme.service';
 import { CommonModule } from '@angular/common';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-header',
@@ -46,6 +47,7 @@ import { CommonModule } from '@angular/common';
   `,
 })
 export class HeaderComponent {
+  user = localStorage.getItem('user');
   readonly themeService = inject(ThemeService);
   logoImg: string = '/assets/images/logo.svg';
 }

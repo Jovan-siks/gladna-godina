@@ -38,7 +38,6 @@ export class UserService {
       })
       .pipe(
         tap((response) => {
-          console.log('🚀 ~ UserService ~ tap ~ response:', response);
           if (response?.token) {
             localStorage.setItem('authToken', response.token);
           }
@@ -47,9 +46,11 @@ export class UserService {
   }
 
   users() {
-    return this.http
-      .get<any>('http://localhost:8000/api/users')
-      .pipe(tap((response) => {}));
+    return this.http.get<any>('http://localhost:8000/api/users').pipe(
+      tap((response) => {
+        return response;
+      })
+    );
   }
   getCurrentUser(): any {
     const user = localStorage.getItem('user');

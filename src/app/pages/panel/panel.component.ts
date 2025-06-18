@@ -1,37 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '../../services/user.service';
+import { FoodService } from '../../services/food.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-panel',
-  imports: [],
+  imports: [CommonModule],
   template: `
     <div
-      class="flex h-[calc(100vh-3.5rem)] bg-[var(--background)] text-[var(--foreground)]  w-full px-20"
+      class="flex h-[calc(100vh-3.5rem)] bg-[var(--background)] text-[var(--foreground)]  w-full px-4 md:px-20"
     >
-      <!-- Sidebar -->
-      <aside
-        class="w-64 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] shadow-lg p-4 border-r border-[var(--sidebar-border)]"
-      >
-        <h2 class="text-xl font-semibold mb-6">Admin</h2>
-        <nav class="flex flex-col space-y-2">
-          <a
-            href="#"
-            class="px-3 py-2 rounded-md transition hover:bg-[var(--sidebar-accent)] hover:text-[var(--sidebar-accent-foreground)]"
-            >Dashboard</a
-          >
-          <a
-            href="#"
-            class="px-3 py-2 rounded-md transition hover:bg-[var(--sidebar-accent)] hover:text-[var(--sidebar-accent-foreground)]"
-            >Users</a
-          >
-          <a
-            href="#"
-            class="px-3 py-2 rounded-md transition hover:bg-[var(--sidebar-accent)] hover:text-[var(--sidebar-accent-foreground)]"
-            >Settings</a
-          >
-        </nav>
-      </aside>
-
       <!-- Main Content -->
       <div class="flex-1 flex flex-col">
         <!-- Header -->
@@ -51,32 +29,30 @@ import { UserService } from '../../services/user.service';
 
         <!-- Page Content -->
         <main class="p-6 overflow-auto">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="grid grid-cols-1  gap-6">
             <div
+              *ngFor="let week of weeklyEntries"
               class="rounded-xl border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md shadow-lg p-4 transition"
             >
               <h2 class="text-lg font-semibold mb-2 text-[var(--foreground)]">
-                Card 1
+                {{ week.weekLabel }}
               </h2>
-              <p class="text-[var(--muted-foreground)]">
-                Some stats or info...
+              <p class="mb-3 text-sm text-gray-600">
+                Week starts on {{ week.weekStartDate | date : 'mediumDate' }}
+              </p>
+              <ul class="list-disc list-inside text-[var(--muted-foreground)]">
+                <li *ngFor="let item of week.entries">
+                  {{ item.day }} - {{ item.foodName }} - {{ item.price }}
+                </li>
+              </ul>
+              <p class="text-right font-semibold text-[var(--foreground)]">
+                Weekly Total: {{ getWeeklyTotal(week).toFixed(2) }} €
               </p>
             </div>
             <div
-              class="rounded-xl border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md shadow-lg p-4 transition"
+              class="mt-4 text-right text-xl font-bold text-[var(--foreground)]"
             >
-              <h2 class="text-lg font-semibold mb-2 text-[var(--foreground)]">
-                Card 2
-              </h2>
-              <p class="text-[var(--muted-foreground)]">More data here...</p>
-            </div>
-            <div
-              class="rounded-xl border border-[var(--border)] bg-[var(--card)]/70 backdrop-blur-md shadow-lg p-4 transition"
-            >
-              <h2 class="text-lg font-semibold mb-2 text-[var(--foreground)]">
-                Card 3
-              </h2>
-              <p class="text-[var(--muted-foreground)]">Details or charts...</p>
+              Monthly Total: {{ monthlyTotal.toFixed(2) }}€
             </div>
           </div>
         </main>
@@ -87,10 +63,28 @@ import { UserService } from '../../services/user.service';
 })
 export class PanelComponent implements OnInit {
   user: any;
+  weeklyEntries: any[] = [];
+  monthlyTotal = 0;
 
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private foodService: FoodService
+  ) {}
 
   ngOnInit(): void {
     this.user = this.userService.getCurrentUser();
+
+    this.foodService.getUserFoodEntrys(this.user._id).subscribe((response) => {
+      this.weeklyEntries = response;
+
+      // ✅ Use helper service instead of inline logic
+      this.monthlyTotal = this.foodService.calculateMonthlyTotal(
+        this.weeklyEntries
+      );
+    });
+  }
+
+  getWeeklyTotal(week: any): number {
+    return this.foodService.calculateWeeklyTotal(week.entries);
   }
 }
