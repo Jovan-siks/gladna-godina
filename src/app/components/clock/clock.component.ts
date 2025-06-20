@@ -19,7 +19,7 @@ import { FormsModule } from '@angular/forms';
       <div class="flex items-center gap-6 mb-2">
         <button
           (click)="toggleRadio()"
-          class="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-xl shadow-md hover:bg-[var(--primary-hover)] transition-colors duration-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+          class="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-xl shadow-md cursor-pointer transition-colors duration-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
         >
           {{ isPlaying ? 'Pause Radio' : 'Play Radio' }}
         </button>
