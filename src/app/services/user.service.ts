@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -10,7 +10,7 @@ export class UserService {
 
   login(email: string, password: string) {
     return this.http
-      .post<any>('http://localhost:8000/api/auth/login', { email, password })
+      .post<any>(`${environment.API_URL}/auth/login`, { email, password })
       .pipe(
         tap((response) => {
           if (response?.token) {
@@ -23,6 +23,7 @@ export class UserService {
   logout() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    this.router.navigate(['/']);
   }
 
   isLoggedIn(): boolean {
@@ -31,7 +32,7 @@ export class UserService {
 
   signup(name: string, email: string, password: string) {
     return this.http
-      .post<any>('http://localhost:8000/api/auth/register', {
+      .post<any>(`${environment.API_URL}/auth/register`, {
         name,
         email,
         password,
@@ -45,8 +46,8 @@ export class UserService {
       );
   }
 
-  users() {
-    return this.http.get<any>('http://localhost:8000/api/users').pipe(
+  getAllUsers() {
+    return this.http.get<any>(`${environment.API_URL}/users`).pipe(
       tap((response) => {
         return response;
       })
@@ -55,5 +56,13 @@ export class UserService {
   getCurrentUser(): any {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
+  }
+
+  deleteUser(userId: string) {
+    return this.http.delete<any>(`${environment.API_URL}/${userId}`).pipe(
+      tap((response) => {
+        return response;
+      })
+    );
   }
 }

@@ -74,7 +74,7 @@ export class PanelComponent implements OnInit {
   ngOnInit(): void {
     this.user = this.userService.getCurrentUser();
 
-    this.foodService.getUserFoodEntrys(this.user._id).subscribe((response) => {
+    this.foodService.getUserFoodEntries(this.user._id).subscribe((response) => {
       this.weeklyEntries = response;
 
       // ✅ Use helper service instead of inline logic

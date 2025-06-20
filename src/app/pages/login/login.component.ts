@@ -8,7 +8,7 @@ import { SignUpComponent } from '../../components/sign-up/sign-up.component';
   standalone: true,
   imports: [CommonModule, LogInComponent, SignUpComponent],
   template: `
-    <div>
+    <div class="flex flex-col items-center justify-center h-[90dvh]">
       <h1 class="text-red-500 text-5xl font-bold text-center  p-4">
         {{ title }}!
       </h1>

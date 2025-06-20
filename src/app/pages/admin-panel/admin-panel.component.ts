@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { UserService } from '../../services/user.service';
 import { FoodService } from '../../services/food.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, formatDate } from '@angular/common';
 import { WeeklyOrders } from '../../components/admin-panel/orders/weekly-orders.component';
 import { UsersComponent } from '../../components/admin-panel/users/users.component';
 import { FoodComponent } from '../../components/admin-panel/food/food.component';
@@ -45,12 +45,13 @@ import { FoodComponent } from '../../components/admin-panel/food/food.component'
       </aside>
 
       <!-- Main Content -->
-      <div class="flex-1 flex flex-col">
+      <div class="flex-1 flex flex-col relative">
         <app-weekly-orders
           *ngIf="selectedTab === 'dashboard'"
           [weeklyEntries]="weeklyEntries"
           [monthlyTotal]="monthlyTotal"
           [user]="user"
+          [onDeleteAll]="deleteAllEntries.bind(this)"
         ></app-weekly-orders>
 
         <app-users *ngIf="selectedTab === 'users'" [users]="users"></app-users>
@@ -61,8 +62,8 @@ import { FoodComponent } from '../../components/admin-panel/food/food.component'
   styles: ``,
 })
 export class AdminPanelComponent {
-  user: any;
-  users: any[] = [];
+  user: any | null = null;
+  users: [] = [];
   weeklyEntries: any[] = [];
   monthlyTotal = 0;
 
@@ -75,13 +76,49 @@ export class AdminPanelComponent {
 
   ngOnInit(): void {
     this.user = this.userService.getCurrentUser();
-    this.userService.users().subscribe((users) => {
+    this.userService.getAllUsers().subscribe((users) => {
       this.users = users;
     });
 
-    this.foodService.getUserFoodEntrys(this.user._id).subscribe((response) => {
+    if (this.user && this.user._id) {
+      this.fetchWeeklyOrders();
+    }
+  }
+
+  fetchWeeklyOrders(): void {
+    this.foodService.getUserFoodEntries(this.user._id).subscribe((response) => {
       this.weeklyEntries = response;
       this.monthlyTotal = this.foodService.calculateMonthlyTotal(response);
+    });
+  }
+
+  deleteAllEntries(): void {
+    if (!this.weeklyEntries.length) return;
+
+    const uniqueMonths = Array.from(
+      new Set(
+        this.weeklyEntries.map((week) =>
+          formatDate(week.weekStartDate, 'yyyy-MM', 'en-US')
+        )
+      )
+    );
+
+    let completed = 0;
+
+    uniqueMonths.forEach((yearMonth) => {
+      this.foodService.deleteAllEntriesForMonth(yearMonth).subscribe({
+        next: () => {
+          console.log(`✅ Deleted entries for ${yearMonth}`);
+          completed++;
+          if (completed === uniqueMonths.length) {
+            // All deletions done, re-fetch data from server
+            this.fetchWeeklyOrders();
+            window.location.reload();
+          }
+        },
+        error: (err) =>
+          console.error(`❌ Error deleting entries for ${yearMonth}:`, err),
+      });
     });
   }
 

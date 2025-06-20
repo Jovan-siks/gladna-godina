@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class FoodService {
@@ -11,26 +11,26 @@ export class FoodService {
   // Get all foods
   getAllFoods(): Observable<{ name: string; price: number }[]> {
     return this.http.get<{ name: string; price: number }[]>(
-      'http://localhost:8000/api/food'
+      `${environment.API_URL}/food`
     );
   }
 
   // Add a new food
   addFood(payload: { name: string; price: number }) {
-    return this.http.post('http://localhost:8000/api/food', payload);
+    return this.http.post(`${environment.API_URL}/food`, payload);
   }
 
   // Edit a food
   editFood(payload: { _id: string; name: string; price: number }) {
     return this.http.patch(
-      `http://localhost:8000/api/food/${payload._id}`,
+      `${environment.API_URL}/food/${payload._id}`,
       payload
     );
   }
 
   // Delete a food
   deleteFood(payload: { _id: string }) {
-    return this.http.delete(`http://localhost:8000/api/food/${payload._id}`, {
+    return this.http.delete(`${environment.API_URL}/food/${payload._id}`, {
       body: payload,
     });
   }
@@ -42,28 +42,26 @@ export class FoodService {
     weekStartDate: string;
     weekLabel: string;
   }) {
-    return this.http.post('http://localhost:8000/api/food-entries', payload);
+    return this.http.post(`${environment.API_URL}/food-entries`, payload);
+  }
+
+  // Get all entries for a week
+  getAllEntriesForWeek(weekStartDate: string): Observable<WeeklyOrder> {
+    return this.http.get<WeeklyOrder>(
+      `${environment.API_URL}/food-entries/${weekStartDate}`
+    );
   }
 
   // Get user food entries
-  getUserFoodEntrys(userId: string) {
-    return this.http
-      .get<{ userID: string }[]>(
-        `http://localhost:8000/api/food-entries/${userId}`
-      )
-      .pipe(tap(console.log));
+  getUserFoodEntries(userId: string): Observable<WeeklyUserOrder[]> {
+    return this.http.get<WeeklyUserOrder[]>(
+      `${environment.API_URL}/food-entries/user/${userId}`
+    );
   }
-
-  updateFoodEntry(payload: {
-    // _id: string;
-    userId: string;
-    entries: { day: string; foodName: string; price: number }[];
-    weekStartDate: string;
-    weekLabel: string;
-  }) {
-    return this.http.patch(
-      `http://localhost:8000/api/food-entries/${payload.userId}`,
-      payload
+  // Delete all entries for a month
+  deleteAllEntriesForMonth(yearMonth: string) {
+    return this.http.delete(
+      `${environment.API_URL}/food-entries/month/${yearMonth}`
     );
   }
 
@@ -78,4 +76,23 @@ export class FoodService {
       return monthSum + this.calculateWeeklyTotal(week.entries);
     }, 0);
   }
+}
+
+export interface WeeklyUserOrder {
+  weekStartDate: string;
+  weekLabel: string;
+  entries: { day: string; foodName: string; price: number }[];
+}
+export interface WeeklyOrder {
+  _id?: string;
+  weekStartDate: string;
+  weekLabel: string;
+  orders: {
+    userId: string;
+    entries: {
+      day: string;
+      foodName: string;
+      price: number;
+    }[];
+  }[];
 }

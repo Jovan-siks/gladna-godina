@@ -126,7 +126,7 @@ export class SignUpComponent {
       next: (response) => {
         console.log('Sign up successful:', response);
         localStorage.setItem('authToken', response.token);
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/']);
         this.errorMessage = null; // Clear any previous error messages
       },
       error: (error) => {
