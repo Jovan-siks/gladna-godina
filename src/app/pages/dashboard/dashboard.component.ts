@@ -5,6 +5,7 @@ import { UserService } from '../../services/user.service';
 import { FoodService } from '../../services/food.service';
 import { DateService } from '../../services/date.service';
 import { ClockComponent } from '../../components/clock/clock.component';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-dashboard',
@@ -51,7 +52,7 @@ import { ClockComponent } from '../../components/clock/clock.component';
                 <ng-container *ngFor="let day of days">
                   <td class="px-6 py-2 border border-[var(--border)]">
                     <select
-                      class="w-full max-w-[200px] px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--popover)]/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-sm text-[var(--foreground)]"
+                      class="w-full max-w-[200px] px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--popover)]/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-sm text-[var(--foreground)] cursor-pointer"
                       [ngModel]="foodNames[user._id][day] || ''"
                       (ngModelChange)="
                         foodNames[user._id][day] = $event;
@@ -76,14 +77,20 @@ import { ClockComponent } from '../../components/clock/clock.component';
           </tbody>
         </table>
 
-        <div class="flex justify-center p-4">
+        <div class="flex flex-col items-center p-4 gap-2">
           <button
-            [disabled]="!currentUser"
+            [disabled]="!currentUser || !canSaveOrder"
             (click)="saveOrder()"
-            class="bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-[var(--primary-foreground)] font-semibold text-sm px-6 py-2 rounded-md shadow-md transition cursor-pointer"
+            class="bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-[var(--primary-foreground)] font-semibold text-sm px-6 py-2 rounded-md shadow-md transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Save Weekly Order
           </button>
+          <div
+            *ngIf="!canSaveOrder"
+            class="text-yellow-600 text-sm font-semibold"
+          >
+            You can save again in: {{ countdown }}
+          </div>
         </div>
       </div>
 
@@ -99,7 +106,7 @@ import { ClockComponent } from '../../components/clock/clock.component';
             </div>
 
             <select
-              class="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--popover)]/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-sm text-[var(--foreground)]"
+              class="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--popover)]/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-sm text-[var(--foreground)] cursor-pointer"
               [ngModel]="foodNames[currentUser._id][day] || ''"
               (ngModelChange)="
                 foodNames[currentUser._id][day] = $event;
@@ -127,12 +134,18 @@ import { ClockComponent } from '../../components/clock/clock.component';
             Monthly Total: {{ getMonthlyTotal(currentUser._id).toFixed(2) }} €
           </div>
           <button
-            [disabled]="!currentUser"
+            [disabled]="!currentUser || !canSaveOrder"
             (click)="saveOrder()"
-            class="mt-4 w-full bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-[var(--primary-foreground)] font-semibold text-sm px-6 py-2 rounded-md shadow-md transition cursor-pointer"
+            class="mt-4 w-full bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-[var(--primary-foreground)] font-semibold text-sm px-6 py-2 rounded-md shadow-md transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Save Weekly Order
           </button>
+          <div
+            *ngIf="!canSaveOrder"
+            class="mt-2 text-yellow-600 text-center font-semibold"
+          >
+            You can save again in: {{ countdown }}
+          </div>
         </div>
       </div>
     </div>
@@ -149,14 +162,21 @@ export class DashboardComponent implements OnInit {
   );
   foods: { name: string; price: number }[] = [];
 
+  canSaveOrder = true;
+  countdown = ''; // string to show timer
+  private countdownInterval?: ReturnType<typeof setInterval>;
+
   constructor(
     private userService: UserService,
-    private foodService: FoodService
+    private foodService: FoodService,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
     this.loadUsers();
     this.loadFoods();
+    this.checkLastSave();
+    if (!this.canSaveOrder) this.startCountdownTimer();
   }
 
   loadUsers(): void {
@@ -242,8 +262,29 @@ export class DashboardComponent implements OnInit {
     return this.getWeeklyTotal(userId);
   }
 
+  checkLastSave(): void {
+    const lastSave = window.localStorage.getItem('lastOrderSave');
+    if (!lastSave) {
+      this.canSaveOrder = true;
+      return;
+    }
+    const lastSaveDate = new Date(lastSave);
+    const now = new Date();
+
+    // Check if lastSaveDate is today
+    if (
+      lastSaveDate.getFullYear() === now.getFullYear() &&
+      lastSaveDate.getMonth() === now.getMonth() &&
+      lastSaveDate.getDate() === now.getDate()
+    ) {
+      this.canSaveOrder = false; // Already saved today
+    } else {
+      this.canSaveOrder = true;
+    }
+  }
+
   saveOrder(): void {
-    if (!this.currentUser) return;
+    if (!this.currentUser || !this.canSaveOrder) return;
 
     const userId = this.currentUser._id;
     const monday = DateService.getMondayOfCurrentWeek(new Date());
@@ -263,10 +304,44 @@ export class DashboardComponent implements OnInit {
 
     this.foodService.saveEntries(payload).subscribe({
       next: (res: any) => {
-        console.log('Order saved successfully:', res);
+        this.toastr.success('Order saved successfully!');
+        // Save timestamp of last save
+        window.localStorage.setItem('lastOrderSave', new Date().toISOString());
+        this.canSaveOrder = false;
+        this.startCountdownTimer();
       },
-      error: (err) => console.error('Error saving order:', err),
+      error: (err) => {
+        this.toastr.error('Failed to save order. Please try again.');
+      },
     });
+  }
+
+  startCountdownTimer(): void {
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+    }
+
+    const nextMidnight = new Date();
+    nextMidnight.setHours(24, 0, 0, 0);
+
+    const updateCountdown = () => {
+      const diff = nextMidnight.getTime() - new Date().getTime();
+      if (diff <= 0) {
+        this.canSaveOrder = true;
+        this.countdown = '';
+        clearInterval(this.countdownInterval);
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      this.countdown = `${hours}h ${minutes}m ${seconds}s`;
+    };
+
+    updateCountdown();
+    this.countdownInterval = setInterval(updateCountdown, 1000);
   }
 
   resetOrderState(): void {

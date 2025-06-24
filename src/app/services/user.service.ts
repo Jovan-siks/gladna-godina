@@ -3,10 +3,15 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
+import { RadioPlayerService } from './radio-player.service';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private radioPlayer: RadioPlayerService
+  ) {}
 
   login(email: string, password: string) {
     return this.http
@@ -20,9 +25,17 @@ export class UserService {
         })
       );
   }
+
   logout() {
+    // Stop the radio playback
+    this.radioPlayer.pause();
+
+    // Clear auth info
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    sessionStorage.clear();
+
+    // Navigate to home or login page
     this.router.navigate(['/']);
   }
 

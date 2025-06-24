@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 @Component({
-  selector: 'app-delete-confirm-modal',
+  selector: 'app-modal',
   standalone: true,
   imports: [CommonModule],
   template: `
@@ -31,7 +31,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
     </div>
   `,
 })
-export class DeleteConfirmModalComponent {
+export class ModalComponent {
   @Input() open = false;
   @Output() confirm = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
