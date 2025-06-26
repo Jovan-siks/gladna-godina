@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   template: `
     <div
-      class="flex min-h-full flex-col items-center justify-center px-6 py-12 lg:px-8"
+      class="flex min-h-full flex-col items-center justify-center px-6 py-12 lg:px-8 "
     >
       <div
         class="w-full max-w-md rounded-xl bg-[var(--card)]/70 backdrop-blur-md border border-[var(--border)] shadow-xl p-8 transition"
@@ -53,7 +53,7 @@ import { CommonModule } from '@angular/common';
                 Password
               </label>
               <a
-                href="#"
+                href="/reset-password"
                 class="text-sm font-semibold text-[var(--primary)] hover:underline"
               >
                 Forgot password?

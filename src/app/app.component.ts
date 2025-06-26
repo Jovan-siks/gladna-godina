@@ -6,10 +6,10 @@ import { HeaderComponent } from './components/header/header.component';
   selector: 'app-root',
   imports: [RouterOutlet, HeaderComponent],
   template: `
-    <div class="bg-[var(--background)] text-[var(--foreground)]">
+    <div class="bg-[var(--background)] m-0 p-0 text-[var(--foreground)]">
       <app-header />
       <div
-        class=" flex flex-col justify-center align-center py-12 sm:px-6 lg:px-8 w-full overflow-auto "
+        class=" flex flex-col justify-center align-center  w-full overflow-auto "
       >
         <router-outlet />
       </div>

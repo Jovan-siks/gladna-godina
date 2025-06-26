@@ -8,10 +8,10 @@ import { SignUpComponent } from '../../components/sign-up/sign-up.component';
   standalone: true,
   imports: [CommonModule, LogInComponent, SignUpComponent],
   template: `
-    <div class="flex flex-col items-center justify-center h-[90dvh]">
-      <h1 class="text-red-500 text-5xl font-bold text-center  p-4">
+    <div class="flex flex-col items-center justify-center h-screen">
+      <!-- <h1 class="text-red-500 text-5xl font-bold text-center  p-4">
         {{ title }}!
-      </h1>
+      </h1> -->
 
       <div class="flex justify-center items-center h-[600px]">
         <app-log-in
@@ -29,8 +29,8 @@ import { SignUpComponent } from '../../components/sign-up/sign-up.component';
   styles: ``,
 })
 export class LoginComponent {
-  currentView = signal<'login' | 'signup'>('login');
-  switchView = (view: 'login' | 'signup') => {
+  currentView = signal<'login' | 'signup' | 'reset-password'>('login');
+  switchView = (view: 'login' | 'signup' | 'reset-password') => {
     console.log('Switching to view:', view);
     this.currentView.set(view);
   };

@@ -37,6 +37,7 @@ export class UserService {
 
     // Navigate to home or login page
     this.router.navigate(['/']);
+    window.location.reload();
   }
 
   isLoggedIn(): boolean {
@@ -69,6 +70,29 @@ export class UserService {
   getCurrentUser(): any {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
+  }
+
+  getUserByEmail(email: string) {
+    return this.http
+      .get<any>(`${environment.API_URL}/users/email/${email}`)
+      .pipe(
+        tap((response) => {
+          return response;
+        })
+      );
+  }
+
+  updateUser(userId: string, userData: any) {
+    return this.http
+      .patch<any>(`${environment.API_URL}/users/${userId}`, userData)
+      .pipe(
+        tap((response) => {
+          if (response?.user) {
+            localStorage.setItem('user', JSON.stringify(response.user));
+          }
+          return response;
+        })
+      );
   }
 
   deleteUser(userId: string) {

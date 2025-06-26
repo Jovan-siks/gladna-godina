@@ -8,7 +8,7 @@ import { FoodService } from '../../../services/food.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="max-w-xl mx-auto mt-10 space-y-8">
+    <div class="max-w-xl mx-auto mt-34 space-y-8">
       <!-- Add/Edit Form -->
       <div
         class="bg-white dark:bg-[var(--card)] rounded-xl shadow-md p-6 border border-[var(--border)]"

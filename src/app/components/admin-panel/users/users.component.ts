@@ -8,7 +8,7 @@ import { User } from '../../../pages/dashboard/dashboard.component';
   imports: [CommonModule],
   template: `
     <div
-      class="block ml-8 rounded-2xl border border-[var(--border)] bg-[var(--card)]/60 backdrop-blur-md shadow-xl overflow-x-auto transition-all max-w-[800px]"
+      class="block ml-8 rounded-2xl border border-[var(--border)] bg-[var(--card)]/60 backdrop-blur-md shadow-xl overflow-x-auto transition-all max-w-[800px] mt-34"
     >
       <table class="w-full text-sm text-[var(--foreground)]">
         <thead

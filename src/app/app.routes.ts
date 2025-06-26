@@ -5,6 +5,7 @@ import { PanelComponent } from './pages/panel/panel.component';
 import { AdminPanelComponent } from './pages/admin-panel/admin-panel.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
 import { AuthGuard } from './auth.guard';
+import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 
 export const routes: Routes = [
   {
@@ -32,6 +33,11 @@ export const routes: Routes = [
     component: AdminPanelComponent,
     canActivate: [AuthGuard],
     data: { roles: ['admin'] },
+  },
+  {
+    path: 'reset-password',
+    pathMatch: 'full',
+    component: ResetPasswordComponent,
   },
   {
     path: 'unauthorized',

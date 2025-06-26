@@ -58,6 +58,17 @@ export class FoodService {
       `${environment.API_URL}/food-entries/user/${userId}`
     );
   }
+
+  getMonthlySummary(yearMonth: string): Observable<
+    {
+      name: string;
+      total: number;
+    }[]
+  > {
+    return this.http.get<{ name: string; total: number }[]>(
+      `${environment.API_URL}/food-entries/monthly-summary/${yearMonth}`
+    );
+  }
   // Delete all entries for a month
   deleteAllEntriesForMonth(yearMonth: string) {
     return this.http.delete(

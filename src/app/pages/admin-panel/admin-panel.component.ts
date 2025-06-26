@@ -5,18 +5,25 @@ import { CommonModule, formatDate } from '@angular/common';
 import { WeeklyOrders } from '../../components/admin-panel/orders/weekly-orders.component';
 import { UsersComponent } from '../../components/admin-panel/users/users.component';
 import { FoodComponent } from '../../components/admin-panel/food/food.component';
+import { AllOrdersComponent } from '../../components/admin-panel/all-orders/all-orders.component';
 
 @Component({
   selector: 'app-admin-panel',
   standalone: true,
-  imports: [CommonModule, WeeklyOrders, UsersComponent, FoodComponent],
+  imports: [
+    CommonModule,
+    WeeklyOrders,
+    UsersComponent,
+    FoodComponent,
+    AllOrdersComponent,
+  ],
   template: `
     <div
-      class="flex h-[calc(100vh-3.5rem)] bg-[var(--background)] text-[var(--foreground)] w-full px-4 md:px-20"
+      class="flex h-screen bg-[var(--background)] text-[var(--foreground)] w-full px-4 md:px-20 justify-center items-start gap-4"
     >
       <!-- Sidebar -->
       <aside
-        class="w-64 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] shadow-lg p-4 border-r border-[var(--sidebar-border)] rounded-md"
+        class="w-64 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] shadow-lg p-4 border-r border-[var(--sidebar-border)] rounded-md min-h-[800px] mt-34"
       >
         <h2 class="text-xl font-semibold mb-6">Admin</h2>
         <nav class="flex flex-col space-y-2">
@@ -41,6 +48,13 @@ import { FoodComponent } from '../../components/admin-panel/food/food.component'
           >
             Food
           </button>
+          <button
+            class="px-3 py-2 rounded-md transition text-left hover:bg-[var(--sidebar-primary)] hover:text-[var(--sidebar-primary-foreground)] cursor-pointer"
+            (click)="selectedTab = 'allOrders'"
+            [ngClass]="buttonClass('allOrders')"
+          >
+            Sve porudžbine
+          </button>
         </nav>
       </aside>
 
@@ -56,6 +70,7 @@ import { FoodComponent } from '../../components/admin-panel/food/food.component'
 
         <app-users *ngIf="selectedTab === 'users'" [users]="users"></app-users>
         <app-food *ngIf="selectedTab === 'add'"></app-food>
+        <app-all-orders *ngIf="selectedTab === 'allOrders'"></app-all-orders>
       </div>
     </div>
   `,
@@ -67,7 +82,7 @@ export class AdminPanelComponent {
   weeklyEntries: any[] = [];
   monthlyTotal = 0;
 
-  selectedTab: 'dashboard' | 'users' | 'add' = 'dashboard';
+  selectedTab: 'dashboard' | 'users' | 'allOrders' | 'add' = 'dashboard';
 
   constructor(
     private userService: UserService,

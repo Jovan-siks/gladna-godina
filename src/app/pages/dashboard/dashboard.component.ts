@@ -6,76 +6,37 @@ import { FoodService } from '../../services/food.service';
 import { DateService } from '../../services/date.service';
 import { ClockComponent } from '../../components/clock/clock.component';
 import { ToastrService } from 'ngx-toastr';
+import { UserOrderTableComponent } from '../../components/dashboard/user-order-table/user-order-table.component';
+import { UserOrderTableMobileComponent } from '../../components/dashboard/user-order-table-mobile/user-order-table-mobile.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, ClockComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ClockComponent,
+    UserOrderTableComponent,
+    UserOrderTableMobileComponent,
+  ],
   template: `
     <div
-      class="px-4 py-6 flex flex-col gap-4 justify-start md:justify-start items-center h-screen"
+      class="px-4 py-6 flex flex-col gap-6 justify-start md:justify-center items-center h-screen mt-34 md:mt-0"
     >
       <app-clock></app-clock>
 
       <div
         class="hidden md:block mx-auto rounded-2xl border border-[var(--border)] bg-[var(--card)]/60 backdrop-blur-md shadow-xl overflow-x-auto transition-all"
       >
-        <table class="min-w-full text-sm text-[var(--foreground)]">
-          <thead
-            class="text-xs text-[var(--muted-foreground)] uppercase tracking-wider backdrop-blur-md bg-[var(--card)]/50 border-b border-[var(--border)]"
-          >
-            <tr>
-              <th class="px-6 py-4 text-left border border-[var(--border)]">
-                Zaposleni
-              </th>
-              <ng-container *ngFor="let day of days">
-                <th class="px-6 py-4 text-left border border-[var(--border)]">
-                  {{ day }}
-                </th>
-                <th class="px-6 py-4 text-left border border-[var(--border)]">
-                  {{ day }} Cijena
-                </th>
-              </ng-container>
-            </tr>
-          </thead>
-          <tbody>
-            <ng-container *ngFor="let user of users; trackBy: trackByUserId">
-              <tr
-                *ngIf="user.role !== 'guest'"
-                class="hover:bg-[var(--muted)]/30 backdrop-blur transition-all"
-              >
-                <td
-                  class="px-6 py-3 border border-[var(--border)] font-semibold"
-                >
-                  {{ user.name }}
-                </td>
-                <ng-container *ngFor="let day of days">
-                  <td class="px-6 py-2 border border-[var(--border)]">
-                    <select
-                      class="w-full max-w-[200px] px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--popover)]/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-sm text-[var(--foreground)] cursor-pointer"
-                      [ngModel]="foodNames[user._id][day] || ''"
-                      (ngModelChange)="
-                        foodNames[user._id][day] = $event;
-                        onFoodSelect(user._id, day)
-                      "
-                      [disabled]="user._id !== currentUser?._id"
-                    >
-                      <option value="">Select food</option>
-                      <option *ngFor="let food of foods" [value]="food.name">
-                        {{ food.name }}
-                      </option>
-                    </select>
-                  </td>
-                  <td
-                    class="px-6 py-2 w-[100px] border border-[var(--border)] text-center bg-[var(--muted)]/40 text-[var(--foreground)]"
-                  >
-                    {{ prices[user._id][day] || 0 }} €
-                  </td>
-                </ng-container>
-              </tr>
-            </ng-container>
-          </tbody>
-        </table>
+        <app-user-order-table
+          [users]="users"
+          [days]="days"
+          [foodNames]="foodNames"
+          [prices]="prices"
+          [currentUser]="currentUser"
+          [foods]="foods"
+          (foodSelect)="onFoodSelect($event.userId, $event.day)"
+        ></app-user-order-table>
 
         <div class="flex flex-col items-center p-4 gap-2">
           <button
@@ -85,69 +46,25 @@ import { ToastrService } from 'ngx-toastr';
           >
             Save Weekly Order
           </button>
-          <div
-            *ngIf="!canSaveOrder"
-            class="text-yellow-600 text-sm font-semibold"
-          >
+          <div *ngIf="!canSaveOrder" class="text-red-600 text-sm font-semibold">
             You can save again in: {{ countdown }}
           </div>
         </div>
       </div>
 
       <!-- Mobile layout (current user only) -->
-      <div class="block md:hidden px-4 py-4" *ngIf="currentUser">
-        <div class="grid gap-4">
-          <div
-            *ngFor="let day of days"
-            class="flex flex-col gap-1 border-b border-[var(--border)] pb-3"
-          >
-            <div class="text-sm text-[var(--muted-foreground)] font-medium">
-              {{ day }}
-            </div>
-
-            <select
-              class="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--popover)]/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-sm text-[var(--foreground)] cursor-pointer"
-              [ngModel]="foodNames[currentUser._id][day] || ''"
-              (ngModelChange)="
-                foodNames[currentUser._id][day] = $event;
-                onFoodSelect(currentUser._id, day)
-              "
-            >
-              <option value="">Select food</option>
-              <option *ngFor="let food of foods" [value]="food.name">
-                {{ food.name }}
-              </option>
-            </select>
-
-            <div class="text-sm text-right text-[var(--foreground)] mt-1">
-              {{ prices[currentUser._id][day] || 0 }} €
-            </div>
-          </div>
-        </div>
-
-        <!-- Totals and Save button -->
-        <div class="mt-6 text-sm font-bold text-center">
-          <div class="text-red-600" *ngIf="currentUser">
-            Weekly Total: {{ getWeeklyTotal(currentUser._id).toFixed(2) }} €
-          </div>
-          <div class="text-green-600 mt-1" *ngIf="currentUser">
-            Monthly Total: {{ getMonthlyTotal(currentUser._id).toFixed(2) }} €
-          </div>
-          <button
-            [disabled]="!currentUser || !canSaveOrder"
-            (click)="saveOrder()"
-            class="mt-4 w-full bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-[var(--primary-foreground)] font-semibold text-sm px-6 py-2 rounded-md shadow-md transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Save Weekly Order
-          </button>
-          <div
-            *ngIf="!canSaveOrder"
-            class="mt-2 text-yellow-600 text-center font-semibold"
-          >
-            You can save again in: {{ countdown }}
-          </div>
-        </div>
-      </div>
+      <app-user-order-table-mobile
+        [users]="users"
+        [days]="days"
+        [foodNames]="foodNames"
+        [prices]="prices"
+        [currentUser]="currentUser"
+        [foods]="foods"
+        (foodSelect)="onFoodSelect($event.userId, $event.day)"
+        (saveOrder)="saveOrder()"
+        [canSaveOrder]="canSaveOrder"
+        [countdown]="countdown"
+      ></app-user-order-table-mobile>
     </div>
   `,
   styles: ``,
@@ -284,9 +201,28 @@ export class DashboardComponent implements OnInit {
   }
 
   saveOrder(): void {
-    if (!this.currentUser || !this.canSaveOrder) return;
+    if (!this.currentUser) return;
 
     const userId = this.currentUser._id;
+    // Use a unique key per user for last save
+    const lastSaveKey = `lastOrderSave_${userId}`;
+    const lastSave = window.localStorage.getItem(lastSaveKey);
+
+    // Check if already saved today
+    if (lastSave) {
+      const lastSaveDate = new Date(lastSave);
+      const now = new Date();
+      if (
+        lastSaveDate.getFullYear() === now.getFullYear() &&
+        lastSaveDate.getMonth() === now.getMonth() &&
+        lastSaveDate.getDate() === now.getDate()
+      ) {
+        this.canSaveOrder = false;
+        this.startCountdownTimer();
+        return;
+      }
+    }
+
     const monday = DateService.getMondayOfCurrentWeek(new Date());
     const weekStartDate = monday.toISOString();
     const endDate = DateService.addDays(monday, 4);
@@ -305,8 +241,8 @@ export class DashboardComponent implements OnInit {
     this.foodService.saveEntries(payload).subscribe({
       next: (res: any) => {
         this.toastr.success('Order saved successfully!');
-        // Save timestamp of last save
-        window.localStorage.setItem('lastOrderSave', new Date().toISOString());
+        // Save timestamp of last save for this user
+        window.localStorage.setItem(lastSaveKey, new Date().toISOString());
         this.canSaveOrder = false;
         this.startCountdownTimer();
       },
