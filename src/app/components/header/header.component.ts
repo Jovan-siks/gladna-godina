@@ -33,10 +33,10 @@ import { UserService } from '../../services/user.service';
             *ngIf="themeService.theme() === 'light'; else sunIcon"
             src="/assets/icons/phosphor/moon.svg"
             alt=""
-            class="w-6 h-6 text-white fill-white invert "
+            class="size-6 text-white fill-white invert "
           />
           <ng-template #sunIcon>
-            <img src="/assets/icons/phosphor/sun.svg" alt="" class="w-6 h-6 " />
+            <img src="/assets/icons/phosphor/sun.svg" alt="" class="size-6 " />
           </ng-template>
         </button>
 
@@ -48,7 +48,7 @@ import { UserService } from '../../services/user.service';
           <img
             src="/assets/icons/phosphor/sign-out.svg"
             alt="logout"
-            class="w-6 h-6 "
+            class="size-6 "
           />
         </button>
       </nav>
