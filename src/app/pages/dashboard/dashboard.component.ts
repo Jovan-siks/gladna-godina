@@ -93,7 +93,17 @@ export class DashboardComponent implements OnInit {
     this.loadUsers();
     this.loadFoods();
     this.checkLastSave();
-    if (!this.canSaveOrder) this.startCountdownTimer();
+    if (!this.canSaveOrder) {
+      const userId = this.currentUser?._id;
+      if (userId) {
+        const lastSaveKey = `lastOrderSave_${userId}`;
+        const lastSave = localStorage.getItem(lastSaveKey);
+        if (lastSave) {
+          const lastSavedAt = new Date(lastSave).getTime();
+          this.startCountdownTimer(lastSavedAt);
+        }
+      }
+    }
   }
 
   loadUsers(): void {
@@ -109,7 +119,8 @@ export class DashboardComponent implements OnInit {
 
   loadFoods(): void {
     this.foodService.getAllFoods().subscribe({
-      next: (foods) => (this.foods = foods),
+      next: (foods) =>
+        (this.foods = foods.sort((a, b) => a.name.localeCompare(b.name))),
       error: (err) => console.error('Failed to load foods', err),
     });
   }
@@ -149,7 +160,7 @@ export class DashboardComponent implements OnInit {
         error: (err) => console.error('Error fetching entries for week:', err),
       });
     } else {
-      console.log('Not fetching orders: It is Friday after 10AM');
+      console.log('Not fetching orders: It is Friday after 12AM');
       this.resetOrderState();
     }
   }
@@ -180,24 +191,23 @@ export class DashboardComponent implements OnInit {
   }
 
   checkLastSave(): void {
-    const lastSave = window.localStorage.getItem('lastOrderSave');
-    if (!lastSave) {
-      this.canSaveOrder = true;
-      return;
-    }
-    const lastSaveDate = new Date(lastSave);
-    const now = new Date();
+    const userId = this.currentUser?._id;
+    if (!userId) return;
 
-    // Check if lastSaveDate is today
-    if (
-      lastSaveDate.getFullYear() === now.getFullYear() &&
-      lastSaveDate.getMonth() === now.getMonth() &&
-      lastSaveDate.getDate() === now.getDate()
-    ) {
-      this.canSaveOrder = false; // Already saved today
-    } else {
-      this.canSaveOrder = true;
+    const lastSaveKey = `lastOrderSave_${userId}`;
+    const lastSave = localStorage.getItem(lastSaveKey);
+
+    if (lastSave) {
+      const lastSavedAt = new Date(lastSave).getTime();
+      const diff = Date.now() - lastSavedAt;
+      if (diff < 24 * 60 * 60 * 1000) {
+        this.canSaveOrder = false;
+        this.startCountdownTimer(lastSavedAt);
+        return;
+      }
     }
+
+    this.canSaveOrder = true;
   }
 
   saveOrder(): void {
@@ -210,20 +220,18 @@ export class DashboardComponent implements OnInit {
 
     // Check if already saved today
     if (lastSave) {
-      const lastSaveDate = new Date(lastSave);
+      const lastSavedAt = new Date(lastSave).getTime();
       const now = new Date();
-      if (
-        lastSaveDate.getFullYear() === now.getFullYear() &&
-        lastSaveDate.getMonth() === now.getMonth() &&
-        lastSaveDate.getDate() === now.getDate()
-      ) {
+      const diffMs = now.getTime() - lastSavedAt;
+      const hoursPassed = diffMs / (1000 * 60 * 60);
+      if (hoursPassed < 24) {
         this.canSaveOrder = false;
-        this.startCountdownTimer();
+        this.startCountdownTimer(lastSavedAt); // pass when it was saved
         return;
       }
     }
 
-    const monday = DateService.getMondayOfCurrentWeek(new Date());
+    const monday = DateService.getRelevantWeekStart(new Date());
     const weekStartDate = monday.toISOString();
     const endDate = DateService.addDays(monday, 4);
     const monthName = monday.toLocaleString('default', { month: 'long' });
@@ -242,9 +250,10 @@ export class DashboardComponent implements OnInit {
       next: (res: any) => {
         this.toastr.success('Order saved successfully!');
         // Save timestamp of last save for this user
-        window.localStorage.setItem(lastSaveKey, new Date().toISOString());
+        const nowIso = new Date().toISOString();
+        window.localStorage.setItem(lastSaveKey, nowIso);
         this.canSaveOrder = false;
-        this.startCountdownTimer();
+        this.startCountdownTimer(new Date(nowIso).getTime());
       },
       error: (err) => {
         this.toastr.error('Failed to save order. Please try again.');
@@ -252,16 +261,13 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  startCountdownTimer(): void {
-    if (this.countdownInterval) {
-      clearInterval(this.countdownInterval);
-    }
+  startCountdownTimer(lastSavedAt: number): void {
+    if (this.countdownInterval) clearInterval(this.countdownInterval);
 
-    const nextMidnight = new Date();
-    nextMidnight.setHours(24, 0, 0, 0);
+    const targetTime = lastSavedAt + 24 * 60 * 60 * 1000;
 
     const updateCountdown = () => {
-      const diff = nextMidnight.getTime() - new Date().getTime();
+      const diff = targetTime - Date.now();
       if (diff <= 0) {
         this.canSaveOrder = true;
         this.countdown = '';

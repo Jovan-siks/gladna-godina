@@ -30,7 +30,7 @@ import { User } from '../../../pages/dashboard/dashboard.component';
         <ng-container *ngFor="let user of users; trackBy: trackByUserId">
           <tr
             *ngIf="user.role !== 'guest'"
-            class="hover:bg-[var(--muted)]/30 backdrop-blur transition-all"
+            class="hover:bg-[var(--muted)] backdrop-blur transition-all"
           >
             <td class="px-6 py-3 border border-[var(--border)] font-semibold">
               {{ user.name }}
@@ -56,6 +56,15 @@ import { User } from '../../../pages/dashboard/dashboard.component';
                     {{ food.name }}
                   </option>
                 </select>
+                <!-- <app-food-select
+                  [foods]="foods"
+                  [selected]="foodNames[user._id][day]"
+                  [disabled]="user._id !== currentUser?._id"
+                  (selectionChange)="
+                    foodNames[user._id][day] = $event;
+                    onFoodSelect(user._id, day)
+                  "
+                ></app-food-select> -->
               </td>
               <td
                 class="px-6 py-2 w-[100px] border border-[var(--border)] text-center bg-[var(--muted)]/40 text-[var(--foreground)]"

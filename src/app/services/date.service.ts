@@ -7,6 +7,12 @@ export class DateService {
     return new Date(d.setDate(diff));
   }
 
+  static getRelevantWeekStart(date: Date = new Date()): Date {
+    const isFriday = date.getDay() === 5; // Friday
+    const currentMonday = this.getMondayOfCurrentWeek(date);
+    return isFriday ? this.addDays(currentMonday, 7) : currentMonday;
+  }
+
   static formatDate(date: Date): string {
     return date.toISOString().split('T')[0];
   }

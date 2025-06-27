@@ -39,12 +39,6 @@ import { User } from '../../../pages/dashboard/dashboard.component';
 
       <!-- Totals and Save button -->
       <div class="mt-6 text-sm font-bold text-center">
-        <div class="text-red-600" *ngIf="currentUser">
-          Weekly Total: {{ getWeeklyTotal(currentUser._id).toFixed(2) }} €
-        </div>
-        <div class="text-green-600 mt-1" *ngIf="currentUser">
-          Monthly Total: {{ getMonthlyTotal(currentUser._id).toFixed(2) }} €
-        </div>
         <button
           [disabled]="!currentUser || !canSaveOrder"
           (click)="saveOrder.emit()"

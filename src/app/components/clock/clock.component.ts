@@ -12,7 +12,7 @@ import { RadioPlayerService } from '../../services/radio-player.service';
     <div
       class="flex flex-col items-center justify-center min-h-[300px] bg-[var(--background)] rounded-2xl shadow-lg p-8 border border-[var(--border)] text-[var(--foreground)]"
     >
-      <div class="text-7xl font-mono font-bold mb-6 drop-shadow">
+      <div class="text-5xl lg:text-7xl font-mono font-bold mb-6 drop-shadow">
         {{ time | date : 'HH:mm:ss' }}
       </div>
       <div class="flex items-center gap-2">
@@ -39,7 +39,7 @@ import { RadioPlayerService } from '../../services/radio-player.service';
           id="station-select"
           [(ngModel)]="currentStationIndex"
           (change)="onStationSelect()"
-          class="px-2 py-1 rounded bg-[var(--card)] text-[var(--foreground)] cursor-pointer text-xl font-semibold max-w-[200px] focus:outline-none focus:ring-none"
+          class="px-2 py-1 rounded bg-[var(--card)] text-[var(--foreground)] cursor-pointer text-xl font-semibold w-full max-w-[200px] focus:outline-none focus:ring-none"
         >
           <option *ngFor="let s of stations; let i = index" [value]="i">
             {{ s.name }}
